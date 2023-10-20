@@ -10,10 +10,9 @@ const scriptName = "동그라미 봇";
  */
 
 
-
 var preMsg={};
 var blockId = {};
-va
+var tierList = [];
 
 var key = DataBase.getDataBase("key");
 
@@ -107,6 +106,7 @@ function lolTierInfo(nickname) {
     if(!json.status)
     {
         var id = json.id;
+        var name = json.name;
 
         var level = "🐻 현재 레벨 ▶ " + json.summonerLevel;
 
@@ -145,7 +145,9 @@ function lolTierInfo(nickname) {
             teamrank = "🐻 자유 랭크 ▶ 랭크 없음";
         }
         
-        var result = "동그라미 나라 [ "+nickname+" ] 님의 정보입니다.\n\n"+level+"\n"+solorank+"\n"+teamrank;
+        var result = "동그라미 나라 [ "+name+" ] 님의 정보입니다.\n\n"+level+"\n"+solorank+"\n"+teamrank;
+
+        
         
         return result;
     }
@@ -158,7 +160,7 @@ function lolTierInfo(nickname) {
 
 function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
     
-    if(room == "동그라미 봇 테스트"){
+    if(room == "동그라미 봇" || room == "동그라미 봇 테스트"){
 
         var replyMessage = ""
 
@@ -196,13 +198,6 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             replyMessage = "엄마는 8시 30분에 출근해요. 💦";
         }
         else if(msg.startsWith("/현이 퇴근")){
-            // var date = new Date();
-
-            // Log.d(17 -date.getHours());
-
-            
-            // Log.d(30-date.getMinutes());
-
             replyMessage = "엄마는 17시 30분에 퇴근해요. 💖";
         }
         else if(msg.startsWith("/하기하다")){
@@ -218,6 +213,23 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             var result = lolTierInfo(msg.replace("/롤 ",""));
             replyMessage = result;
         }
+
+        else if(msg.startsWith("/동그라미 탑")){
+            replyMessage = "동그라미 탑 소개 🐷\n\n1군 💌 맹독 코포 클립 파닭\n2군 💌 말랑 몽뎅 사카 승연 자몽 하둔";
+        }
+        else if(msg.startsWith("/동그라미 정글")){
+            replyMessage = "동그라미 정글 소개 🐷\n\n1군 💌 다훈 던필 말랑 문어 미자 하기 하둔\n2군 💌 맹독 민지 으릉 재화 파닭";
+        }
+        else if(msg.startsWith("/동그라미 미드")){
+            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 사카 이불 재화 현이\n2군 💌 루미 쁘아 선영 코포";
+        }
+        else if(msg.startsWith("/동그라미 봇")){
+            replyMessage = "동그라미 봇 소개 🐷\n\n1군 💌 겸이 루미 승연 자몽 재화 클립 파닭 하둔 현이\n2군 💌 미자 코포";
+        }
+        else if(msg.startsWith("/동그라미 서포터")){
+            replyMessage = "동그라미 서포터 소개 🐷\n\n1군 💌 겸이 루미 몽뎅 문어 민지 쁘아 사카 선영 승연 으릉 이불 자몽 하기\n2군 💌 던필 재화 현이";
+        }
+        
  
         else if(msg.startsWith("/날씨"))  {
         
@@ -237,7 +249,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     if(resultDC=="")
                         replyMessage = weather + "의 날씨는 하트가 알 수 없어요. 😯";
                     else
-                        replyMessage = "현재 "+weather+" 날씨 정보예요. 🐶\n\n날씨 : " + resultDC + "\n온도 : " + resultTM + "°C\n강수 확률 : " + resultPP + "\n풍속 : " + resultWS + "\n습도 : " + resultHM;
+                        replyMessage = "현재 시점 "+weather+" 날씨 정보예요. 🐶\n\n날씨 : " + resultDC + "\n온도 : " + resultTM + "°C\n강수 확률 : " + resultPP + "\n풍속 : " + resultWS + "\n습도 : " + resultHM;
                 }catch(e)  {
                     replyMessage = weather + "의 날씨는 하트가 알 수 없어요. 😯";
                 }
@@ -246,11 +258,14 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 replyMessage = "원하는 지역을 뒤에 적어줘요. 😉\n예시) /날씨 서울";
             }
         }
-        else if(msg.equals("/동그라미 티어"))
-        {
-            replyMessage = "티어리스트";
-        }
-
+        // else if(msg.equals("/동그라미 티어"))
+        // {
+        //     replyMessage = "티어리스트";
+        // }
+        // else if(msg.equals("/save"))
+        // {
+        //     DataBase.setDataBase("tierList",JSON.stringify(test));
+        // }
 
         else if(msg.indexOf("하트 바보") != -1){
             if(blockId[sender] == undefined)
@@ -265,6 +280,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
 
                 blockId[sender].time = date;
                 blockId[sender].block = false;
+                blockId[sender].image = ImageDB.getProfileImage();
 
                 isAngry = true;
                 
@@ -286,7 +302,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
 
                 if(blockId[sender].time < new Date())
                 {
-                    replyMessage = "이제 말 걸어도 돼요. 😊 "+sender+"님 방금 뭐라고 하셨죠? 😀";
+                    replyMessage = "이제 말 걸어도 돼요. "+sender+"님 😊";
                     delete blockId[sender]
                 }
             }
