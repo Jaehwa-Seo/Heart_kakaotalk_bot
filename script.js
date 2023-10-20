@@ -12,7 +12,10 @@ const scriptName = "동그라미 봇";
 
 var preMsg={};
 var blockId = {};
-var tierList = [];
+var tierList = JSON.parse(DataBase.getDataBase("tierList"));
+
+Log.d(tierList);
+// var saveTier = [];
 
 var key = DataBase.getDataBase("key");
 
@@ -87,6 +90,75 @@ function RankChanger(jsonRank)
     return rank;
 }
 
+function TierCalculator(tier)
+{
+    var score = 0;
+
+    if(tier == "Bronze")
+    {
+        score = 400;
+    }
+    else if(tier == "Silver")
+    {
+        score = 800;
+    }
+    else if(tier == "Gold")
+    {
+        score = 1200;
+    }
+    else if(tier == "Platinum")
+    {
+        score = 1600;
+    }
+    else if(tier == "Emerald")
+    {
+        score = 2000;
+    }
+    else if(tier == "Diamond")
+    {
+        score = 2400;
+    }
+    else if(tier == "Master")
+    {
+        score = 2800;
+    }
+    else if(tier == "GrandMaster")
+    {
+        score = 2900;
+    }
+    else if(tier == "Challenger")
+    {
+        score = 3000;
+    }
+
+
+    return score;
+}
+
+function RankCalculator(rank)
+{
+    var score = 0
+
+    if(rank == "1")
+    {
+        score = 300;
+    }
+    else if(rank == "2")
+    {
+        score = 200;
+    }
+    else if(rank == "3")
+    {
+        score = 100;
+    }
+    else if(rank == "4")
+    {
+        score = 0;
+    }
+
+    return score;
+}
+
 function lolTierInfo(nickname) {
 
     if(nickname.length == 2)
@@ -126,6 +198,7 @@ function lolTierInfo(nickname) {
             if(json2[i].queueType == "RANKED_SOLO_5x5")
             {
                 solorank = "🐻 개인 랭크 ▶ " + tier + " " + rank + " " + json2[i].leaguePoints + " LP";
+                // saveTier.push({"id" : name, "tier" : tier, "rank" : rank, "leaguepoint" : json2[i].leaguePoints});
             }
             else if(json2[i].queueType == "RANKED_FLEX_SR")
             {
@@ -138,6 +211,7 @@ function lolTierInfo(nickname) {
         if(solorank == "")
         {
             solorank = "🐻 개인 랭크 ▶ 랭크 없음";
+            // saveTier.push({"id" : name, "tier" : "랭크 없음", "rank" : 0, "leaguepoint" : 0});
         }
 
         if(teamrank == "")
@@ -160,7 +234,7 @@ function lolTierInfo(nickname) {
 
 function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
     
-    if(room == "동그라미 봇" || room == "동그라미 봇 테스트"){
+    if( room == "동그라미 봇"){
 
         var replyMessage = ""
 
@@ -258,13 +332,61 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 replyMessage = "원하는 지역을 뒤에 적어줘요. 😉\n예시) /날씨 서울";
             }
         }
-        // else if(msg.equals("/동그라미 티어"))
-        // {
-        //     replyMessage = "티어리스트";
-        // }
+        else if(msg.equals("/동그라미 티어"))
+        {
+            replyMessage = "💎 동그라미 랭크 현황 💎\n\n";
+
+            var circleTierList = []
+            var circleTierNoRankList = []
+            Object.keys(tierList).forEach((key) => {
+
+                var score = TierCalculator(tierList[key]["tier"]) + RankCalculator(tierList[key]["rank"]) + tierList[key]["leaguepoint"];
+
+                if(tierList[key]["tier"] != "랭크 없음")
+                    circleTierList.push([key,score]);
+                else
+                    circleTierNoRankList.push([key]);
+            });
+
+            circleTierList.sort(function(a,b) {
+                if(b[1] != a[1])
+                    return b[1] - a[1];
+                else
+                    return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
+            })
+
+            circleTierNoRankList.sort();
+
+            for(var i=0;i<circleTierList.length;i++)
+            {
+                if(tierList[circleTierList[i][0]]["tier"] == "Master")
+                    replyMessage += "💜";
+                else if(tierList[circleTierList[i][0]]["tier"] == "Diamond")
+                    replyMessage += "💙";
+                else if(tierList[circleTierList[i][0]]["tier"] == "Emerald")
+                    replyMessage += "❤";   
+                else if(tierList[circleTierList[i][0]]["tier"] == "Platinum")
+                    replyMessage += "💚";   
+                else if(tierList[circleTierList[i][0]]["tier"] == "Gold")
+                    replyMessage += "💛";   
+                else if(tierList[circleTierList[i][0]]["tier"] == "Silver")
+                    replyMessage += "🤍";   
+                else if(tierList[circleTierList[i][0]]["tier"] == "Bronze")
+                    replyMessage += "🤎";
+                
+                if(tierList[circleTierList[i][0]]["tier"] == "Master")
+                    replyMessage += " " + circleTierList[i][0] + " " + tierList[circleTierList[i][0]]["tier"] + " " + tierList[circleTierList[i][0]]["leaguepoint"] + " LP\n"
+                else
+                    replyMessage += " " + circleTierList[i][0] + " " + tierList[circleTierList[i][0]]["tier"] + " " + tierList[circleTierList[i][0]]["rank"] + " " + tierList[circleTierList[i][0]]["leaguepoint"] + " LP\n"
+            }
+            for(var i=0;i<circleTierNoRankList.length;i++)
+            {
+                replyMessage += "🖤 " + circleTierNoRankList[i][0] + " 랭크 없음\n";
+            }
+        }
         // else if(msg.equals("/save"))
         // {
-        //     DataBase.setDataBase("tierList",JSON.stringify(test));
+        //     DataBase.setDataBase("tierList",JSON.stringify(saveTier));
         // }
 
         else if(msg.indexOf("하트 바보") != -1){
