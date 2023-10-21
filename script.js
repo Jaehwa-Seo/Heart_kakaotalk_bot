@@ -13,9 +13,8 @@ const scriptName = "동그라미 봇";
 var preMsg={};
 var blockId = {};
 var tierList = JSON.parse(DataBase.getDataBase("tierList"));
-
-Log.d(tierList);
-// var saveTier = [];
+var gameType = JSON.parse(DataBase.getDataBase("gametype"));
+var championData = JSON.parse(DataBase.getDataBase("championdata"));
 
 var key = DataBase.getDataBase("key");
 
@@ -159,6 +158,46 @@ function RankCalculator(rank)
     return score;
 }
 
+function getRiotId(nickname)
+{
+    var encodeNickname = encodeURI(nickname); 
+     
+    var data = org.jsoup.Jsoup.connect("https://kr.api.riotgames.com/lol/summoner/v4/summoners/by-name/"+ encodeNickname +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
+    .get();
+
+    var json = JSON.parse(data.text());
+
+    return json;
+}
+
+function getRiotLeagueData(id)
+{
+    var data = org.jsoup.Jsoup.connect("https://kr.api.riotgames.com/lol/league/v4/entries/by-summoner/"+ id +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
+    .get();
+
+    var leagueJson = JSON.parse(data.text());
+
+    return leagueJson;
+}
+
+function getRiotMatchId(puuid)
+{
+    var data = org.jsoup.Jsoup.connect("https://asia.api.riotgames.com/lol/match/v5/matches/by-puuid/" + puuid + "/ids?start=0&count=10&api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true).get();
+
+    data = JSON.parse(data.text());
+
+    return data;
+}
+
+function getRiotMatchData(matchid)
+{
+    var data = org.jsoup.Jsoup.connect("https://asia.api.riotgames.com/lol/match/v5/matches/" + matchid + "?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true).get();
+
+    data = JSON.parse(data.text());
+    
+    return data;
+}
+
 function lolTierInfo(nickname) {
 
     if(nickname.length == 2)
@@ -166,14 +205,7 @@ function lolTierInfo(nickname) {
         nickname = nickname[0] + " " + nickname[1];
     }
 
-
-    var encodeNickname = encodeURI(nickname); 
-     
-
-    var data = org.jsoup.Jsoup.connect("https://kr.api.riotgames.com/lol/summoner/v4/summoners/by-name/"+ encodeNickname +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
-    .get();
-
-    var json = JSON.parse(data.text());
+    var json = getRiotId(nickname);
 
     if(!json.status)
     {
@@ -182,10 +214,7 @@ function lolTierInfo(nickname) {
 
         var level = "🐻 현재 레벨 ▶ " + json.summonerLevel;
 
-        var data2 = org.jsoup.Jsoup.connect("https://kr.api.riotgames.com/lol/league/v4/entries/by-summoner/"+ id +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
-        .get();
-
-        var json2 = JSON.parse(data2.text());
+        var json2 = getRiotLeagueData(id)
 
         var solorank = "";
         var teamrank = "";
@@ -198,6 +227,19 @@ function lolTierInfo(nickname) {
             if(json2[i].queueType == "RANKED_SOLO_5x5")
             {
                 solorank = "🐻 개인 랭크 ▶ " + tier + " " + rank + " " + json2[i].leaguePoints + " LP";
+                Object.keys(tierList).forEach((key) => {
+                    if(name == tierList[key]["id"])
+                    {
+                        Log.d(name)
+                        Log.d(tierList[key]["id"])
+                        tierList[key]["tier"] = tier;
+                        tierList[key]["rank"] = rank;
+                        tierList[key]["leaguepoint"] = json2[i].leaguePoints;
+
+                        DataBase.removeDataBase("tierlist");
+                        DataBase.setDataBase("tierlist",JSON.stringify(tierList));
+                    }
+                });
                 // saveTier.push({"id" : name, "tier" : tier, "rank" : rank, "leaguepoint" : json2[i].leaguePoints});
             }
             else if(json2[i].queueType == "RANKED_FLEX_SR")
@@ -234,7 +276,7 @@ function lolTierInfo(nickname) {
 
 function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
     
-    if( room == "동그라미 봇"){
+    if( room == "동그라미 봇 테스트"){
 
         var replyMessage = ""
 
@@ -384,6 +426,110 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 replyMessage += "🖤 " + circleTierNoRankList[i][0] + " 랭크 없음\n";
             }
         }
+
+        else if(msg.startsWith("/아이디변경"))  {
+            var info = msg.split(' ');
+
+            if(info.length == 3)
+            {
+                if(tierList[info[1]] != undefined)
+                {
+
+                    tierList[info[1]].id = info[2];
+
+                    var json = getRiotId(info[2]);
+
+                    if(!json.status)
+                    {
+                        var data = getRiotLeagueData(json.id);
+
+                        var flag = false;
+
+                        for(var i=0;i<data.length;i++)
+                        {
+                            var tier = TierChanger(data[i].tier);
+                            var rank = RankChanger(data[i].rank);
+
+                            if(data[i].queueType == "RANKED_SOLO_5x5")
+                            {
+                                tierList[info[1]].tier = tier;
+                                tierList[info[1]].rank = rank;
+                                tierList[info[1]].leaguepoint = data[i].leaguePoints;
+
+                                flag = true;
+                            }                          
+                        }
+
+                        if(!flag)
+                        {
+                            tierList[info[1]].tier = "랭크 없음";
+                            tierList[info[1]].rank = 0;
+                            tierList[info[1]].leaguepoint = 0;
+                        }
+                        
+                        DataBase.removeDataBase("tierlist");
+                        DataBase.setDataBase("tierlist",JSON.stringify(tierList));
+
+                        Log.d(JSON.stringify(tierList));
+                    }     
+                }
+            }
+        }
+
+        else if(msg.startsWith("/전적"))
+        {
+            var nickname = msg.replace("/전적 ","");
+            if(nickname.length == 2)
+            {
+                nickname = nickname[0] + " " + nickname[1];
+            }
+
+            var idData = getRiotId(nickname);
+            
+            if(!idData.status)
+            {
+                nickname = idData.name;
+                var puuid = idData.puuid;
+
+                replyMessage = "최근 [ " + nickname + " ] 님의 게임 전적입니다.\n\n";
+                
+                var matchId = getRiotMatchId(puuid);
+
+                var matchResult = ""
+
+                var winCnt = 0;
+
+                for(var i=0;i<matchId.length;i++)
+                {
+                    var matchData = getRiotMatchData(matchId[i]);
+
+                    for(var j=0;j<matchData.info.participants.length;j++)
+                    {
+                        if(puuid == matchData.info.participants[j].puuid)
+                        {
+                            matchResult += gameType[matchData.info.queueId] + " : " + championData[matchData.info.participants[j].championName] + " (" + matchData.info.participants[j].kills + "/" + matchData.info.participants[j].deaths + "/" + matchData.info.participants[j].assists + ") ";
+
+                            if(matchData.info.participants[j].win)
+                            {
+                                matchResult += "❤ 승리\n";
+                                winCnt++;
+                            }
+                            else
+                                matchResult += "💔 패배\n";
+                            break;
+                        }
+                    }
+                }
+
+                replyMessage += winCnt + "승 " + (10-winCnt) + "패 승률 " + winCnt/10 * 100 + "%\n\n"
+                replyMessage += matchResult;
+            }
+            else
+            {
+                replyMessage = "존재하지 않는 소환사명이래요. 오타를 확인한 후 다시 검색해 주세요. 😥"
+            }
+        }
+        
         // else if(msg.equals("/save"))
         // {
         //     DataBase.setDataBase("tierList",JSON.stringify(saveTier));
