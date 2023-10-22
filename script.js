@@ -15,6 +15,7 @@ var blockId = {};
 var tierList = JSON.parse(DataBase.getDataBase("tierList"));
 var gameType = JSON.parse(DataBase.getDataBase("gametype"));
 var championData = JSON.parse(DataBase.getDataBase("championdata"));
+var news = [];
 
 var key = DataBase.getDataBase("key");
 
@@ -337,12 +338,12 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             replyMessage = "동그라미 정글 소개 🐷\n\n1군 💌 다훈 던필 말랑 문어 미자 하기 하둔\n2군 💌 맹독 민지 으릉 재화 파닭";
         }
         else if(msg.startsWith("/동그라미 미드")){
-            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 사카 이불 재화 현이\n2군 💌 루미 쁘아 선영 코포";
+            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 사카 이불 재화 현이\n2군 💌 루미 선영 코포";
         }
-        else if(msg.startsWith("/동그라미 봇")){
-            replyMessage = "동그라미 봇 소개 🐷\n\n1군 💌 겸이 루미 승연 자몽 재화 클립 파닭 하둔 현이\n2군 💌 미자 코포";
+        else if(msg.startsWith("/동그라미 봇") || msg.startsWith("/동그라미 원딜")){
+            replyMessage = "동그라미 봇 소개 🐷\n\n1군 💌 겸이 루미 승연 자몽 재화 클립 파닭 하둔 현이\n2군 💌 미자 쁘아 코포";
         }
-        else if(msg.startsWith("/동그라미 서포터")){
+        else if(msg.startsWith("/동그라미 서포터") || msg.startsWith("/동그라미 서폿")){
             replyMessage = "동그라미 서포터 소개 🐷\n\n1군 💌 겸이 루미 몽뎅 문어 민지 쁘아 사카 선영 승연 으릉 이불 자몽 하기\n2군 💌 던필 재화 현이";
         }
         
@@ -423,7 +424,9 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             }
             for(var i=0;i<circleTierNoRankList.length;i++)
             {
-                replyMessage += "🖤 " + circleTierNoRankList[i][0] + " 랭크 없음\n";
+                replyMessage += "🖤 " + circleTierNoRankList[i][0] + " 랭크 없음";
+                if(i!=circleTierNoRankList.length-1)
+                    replyMessage += "\n";
             }
         }
 
@@ -511,14 +514,16 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
 
                             if(matchData.info.participants[j].win)
                             {
-                                matchResult += "❤ 승리\n";
+                                matchResult += "❤ 승리";
                                 winCnt++;
                             }
                             else
-                                matchResult += "💔 패배\n";
+                                matchResult += "💔 패배";
                             break;
                         }
                     }
+                    if(i != matchId.length-1)
+                        matchResult += "\n";
                 }
 
                 replyMessage += winCnt + "승 " + (10-winCnt) + "패 승률 " + winCnt/10 * 100 + "%\n\n"
@@ -527,6 +532,107 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             else
             {
                 replyMessage = "존재하지 않는 소환사명이래요. 오타를 확인한 후 다시 검색해 주세요. 😥"
+            }
+        }
+
+        // 뉴스 
+        
+        
+        else if(msg.startsWith("/동그라미 뉴스"))
+        {
+            if(msg == "/동그라미 뉴스")
+            {
+                //show news
+                replyMessage = "동그라미 일간 뉴스 🌻\n\n"
+
+                for(var i=0;i<news.length;i++)
+                {
+                    replyMessage += (i+1).toString() + ". " + news[i].news + " - " + news[i].writer + "\n[";
+            
+                    for(var j=0;j<news[i].participants.length;j++)
+                    {
+                        replyMessage += news[i].participants[j];
+                        if(j!= news[i].participants.length-1)
+                            replyMessage += ", ";
+                        else
+                            replyMessage += "]\n"
+                    }
+
+                    if(i!= news.length-1)
+                        replyMessage += "\n";
+                }
+            }
+            else
+            {
+                var info = msg.split(' ');
+
+                if(info[2] == "등록")
+                {
+                    var body = msg.replace("/동그라미 뉴스 등록 ","");
+                    news.push({writer : sender, news : body,participants : [sender]});
+                }
+
+                //참가
+                else if(info[2] == "참가")
+                {
+                    var news_num = msg.replace("/동그라미 뉴스 참가 ","");
+                    
+                    if(news[news_num-1].participants.includes(sender))
+                    {
+                        replyMessage = "이미 뉴스에 참가하고 있습니다."
+                    }
+                    else
+                    {
+                        news[news_num-1].participants.push(sender);
+                        replyMessage = news_num + "번 뉴스에 "+sender+"님이 참가하였습니다."
+                    }
+                }
+                else if(info[2] == "취소")
+                {
+                    var news_num = msg.replace("/동그라미 뉴스 취소 ","");
+
+                    if(news[news_num-1] == undefined)
+                    {
+                        replyMessage = "뉴스를 찾을 수 없습니다. 번호를 확인해주세요."
+                    }
+                    else
+                    {
+                        if(news[news_num-1].participants.includes(sender) && news[news_num-1].writer != sender)
+                        {
+                            for(var i = 0; i < news[news_num-1].participants.length; i++){ 
+                                if (news[news_num-1].participants[i] === sender) { 
+                                    news[news_num-1].participants.splice(i, 1); 
+                                    break;
+                                }
+                            }
+                            replyMessage = news_num + "번 뉴스에 "+sender+"님이 참가 취소하셨습니다."
+                            
+                        }
+                        else if(news[news_num-1].writer == sender)
+                        {
+                            replyMessage = "뉴스의 작성자는 참가를 취소할 수 없습니다."
+                        }
+                        else
+                        {
+                            replyMessage = "뉴스에 참가하고 있지 않습니다."
+                        }
+                    }
+                }
+                else if(info[2] == "삭제")
+                {
+                    var news_num = msg.replace("/동그라미 뉴스 삭제 ","");
+                    
+                    if(news[news_num-1].writer == sender)
+                    {
+                        news.splice(news_num-1, 1); 
+
+                        replyMessage = news_num + "번 뉴스가 삭제되었습니다."
+                    }
+                    else
+                    {
+                        replyMessage = "뉴스의 작성자가 아니면 삭제할 수 없습니다."
+                    }
+                }
             }
         }
         
