@@ -674,6 +674,48 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             }
         }
 
+        else if(msg == "/오늘의 운세")
+        {
+            try {
+    
+                let url = org.jsoup.Jsoup.connect("http://www.joongboo.com/news/articleList.html?sc_serial_code=SRN361&view_type=sm").get();
+
+                var title_tag = url.select("#section-list > ul > li > div > h4 > a");
+
+                var title = title_tag.toString().split("\n");
+
+                var luck_url = "http://www.joongboo.com";
+
+                var luck_date = [];
+
+                for(var i=0;i<title.length;i++)
+                {
+                    Log.d(title[i].replace(/<[^>]+>/g,""));
+                    if(title[i].replace(/<[^>]+>/g,"").startsWith("[오늘의 운세]"))
+                    {
+                        luck_url += title_tag.attr("href");
+
+                        luck_date = title[i].replace(/<[^>]+>/g,"").replace("[오늘의 운세] ","").split(" ");
+                        break;
+                    }
+                }
+
+                var data = org.jsoup.Jsoup.connect(luck_url).get().select(".article-body > article > p");
+
+                data = data.toString().replace(/&nbsp;/g,"");
+                data = data.toString().replace(/<br>/g,"\n");
+                data = data.toString().replace(/<p>/g,"\n");
+                data = data.toString().replace(/<\/p>/g,"\n");
+                data = data.toString().replace(/\n\n/g,"\n");
+
+                replyMessage = "하트가 "+luck_date[0] + " " + luck_date[1] + " " + luck_date[2] + " 운세를 말해줄게요. 😉\n"
+                replyMessage += data;
+
+    
+            }catch(e)  {
+                replyMessage = "지금 운세를 하트가 알 수 없어요. 😯";
+            }
+        }
         
         // else if(msg.equals("/save"))
         // {
@@ -718,10 +760,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     replyMessage = "이제 말 걸어도 돼요. "+sender+"님 😊";
                     delete blockId[sender]
                 }
-            }
-            
-            
-            
+            } 
         }
 
         replier.reply(replyMessage);
