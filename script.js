@@ -568,73 +568,112 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
 
                 if(info[2] == "등록")
                 {
-                    var body = msg.replace("/동그라미 뉴스 등록 ","");
-                    news.push({writer : sender, news : body,participants : [sender]});
+                    if(info[3] != undefined)
+                    {
+                        var body = msg.replace("/동그라미 뉴스 등록 ","");
+                        news.push({writer : sender, news : body,participants : [sender]});
+
+                        replyMessage = "새로운 뉴스가 등록되었습니다."
+                    }
+                    else
+                    {
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 등록 ~~~~ "
+                    }
                 }
 
                 //참가
                 else if(info[2] == "참가")
                 {
-                    var news_num = msg.replace("/동그라미 뉴스 참가 ","");
-                    
-                    if(news[news_num-1].participants.includes(sender))
+                    var news_num = Number(msg.replace("/동그라미 뉴스 참가 ",""));
+
+                    if(info[3] != undefined && Number.isInteger(news_num))
                     {
-                        replyMessage = "이미 뉴스에 참가하고 있습니다."
+                        
+                        if(news[news_num-1] == undefined)
+                        {
+                            replyMessage = "뉴스를 찾을 수 없습니다. 번호를 확인해주세요."
+                        }
+                        else if(news[news_num-1].participants.includes(sender))
+                        {
+                            replyMessage = "이미 뉴스에 참가하고 있습니다."
+                        }
+                        else
+                        {
+                            news[news_num-1].participants.push(sender);
+                            replyMessage = news_num + "번 뉴스에 "+sender+"님이 참가하였습니다."
+                        }
                     }
                     else
                     {
-                        news[news_num-1].participants.push(sender);
-                        replyMessage = news_num + "번 뉴스에 "+sender+"님이 참가하였습니다."
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 참가 1"
                     }
                 }
                 else if(info[2] == "취소")
                 {
-                    var news_num = msg.replace("/동그라미 뉴스 취소 ","");
+                    var news_num = Number(msg.replace("/동그라미 뉴스 취소 ",""));
 
-                    if(news[news_num-1] == undefined)
+                    if(info[3] != undefined && Number.isInteger(news_num))
                     {
-                        replyMessage = "뉴스를 찾을 수 없습니다. 번호를 확인해주세요."
-                    }
-                    else
-                    {
-                        if(news[news_num-1].participants.includes(sender) && news[news_num-1].writer != sender)
+                        if(news[news_num-1] == undefined)
                         {
-                            for(var i = 0; i < news[news_num-1].participants.length; i++){ 
-                                if (news[news_num-1].participants[i] === sender) { 
-                                    news[news_num-1].participants.splice(i, 1); 
-                                    break;
-                                }
-                            }
-                            replyMessage = news_num + "번 뉴스에 "+sender+"님이 참가 취소하셨습니다."
-                            
-                        }
-                        else if(news[news_num-1].writer == sender)
-                        {
-                            replyMessage = "뉴스의 작성자는 참가를 취소할 수 없습니다."
+                            replyMessage = "뉴스를 찾을 수 없습니다. 번호를 확인해주세요."
                         }
                         else
                         {
-                            replyMessage = "뉴스에 참가하고 있지 않습니다."
+                            if(news[news_num-1].participants.includes(sender) && news[news_num-1].writer != sender)
+                            {
+                                for(var i = 0; i < news[news_num-1].participants.length; i++){ 
+                                    if (news[news_num-1].participants[i] === sender) { 
+                                        news[news_num-1].participants.splice(i, 1); 
+                                        break;
+                                    }
+                                }
+                                replyMessage = news_num + "번 뉴스에 "+sender+"님이 참가 취소하셨습니다."
+                                
+                            }
+                            else if(news[news_num-1].writer == sender)
+                            {
+                                replyMessage = "뉴스의 작성자는 참가를 취소할 수 없습니다."
+                            }
+                            else
+                            {
+                                replyMessage = "뉴스에 참가하고 있지 않습니다."
+                            }
                         }
+                    }
+                    else
+                    {
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 취소 1"
                     }
                 }
                 else if(info[2] == "삭제")
                 {
-                    var news_num = msg.replace("/동그라미 뉴스 삭제 ","");
-                    
-                    if(news[news_num-1].writer == sender)
+                    var news_num = Number(msg.replace("/동그라미 뉴스 삭제 ",""));
+                    if(info[3] != undefined && Number.isInteger(news_num))
                     {
-                        news.splice(news_num-1, 1); 
+                        if(news[news_num-1] == undefined)
+                        {
+                            replyMessage = "뉴스를 찾을 수 없습니다. 번호를 확인해주세요."
+                        }
+                        else if(news[news_num-1].writer == sender)
+                        {
+                            news.splice(news_num-1, 1); 
 
-                        replyMessage = news_num + "번 뉴스가 삭제되었습니다."
+                            replyMessage = news_num + "번 뉴스가 삭제되었습니다."
+                        }
+                        else
+                        {
+                            replyMessage = "뉴스의 작성자가 아니면 삭제할 수 없습니다."
+                        }
                     }
                     else
                     {
-                        replyMessage = "뉴스의 작성자가 아니면 삭제할 수 없습니다."
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 삭제 1"
                     }
                 }
             }
         }
+
         
         // else if(msg.equals("/save"))
         // {
