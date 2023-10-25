@@ -234,9 +234,9 @@ function lolTierInfo(nickname) {
                     {
                         Log.d(name)
                         Log.d(tierList[key]["id"])
-                        tierList[key]["tier"] = tier;
-                        tierList[key]["rank"] = rank;
-                        tierList[key]["leaguepoint"] = json2[i].leaguePoints;
+                        tierList[key]["solo"]["tier"] = tier;
+                        tierList[key]["solo"]["rank"] = rank;
+                        tierList[key]["solo"]["leaguepoint"] = json2[i].leaguePoints;
 
                         DataBase.removeDataBase("tierlist");
                         DataBase.setDataBase("tierlist",JSON.stringify(tierList));
@@ -247,6 +247,20 @@ function lolTierInfo(nickname) {
             else if(json2[i].queueType == "RANKED_FLEX_SR")
             {
                 teamrank = "🐻 자유 랭크 ▶ " + tier + " " + rank + " " + json2[i].leaguePoints + " LP";
+
+                Object.keys(tierList).forEach((key) => {
+                    if(name == tierList[key]["id"])
+                    {
+                        Log.d(name)
+                        Log.d(tierList[key]["id"])
+                        tierList[key]["team"]["tier"] = tier;
+                        tierList[key]["team"]["rank"] = rank;
+                        tierList[key]["team"]["leaguepoint"] = json2[i].leaguePoints;
+
+                        DataBase.removeDataBase("tierlist");
+                        DataBase.setDataBase("tierlist",JSON.stringify(tierList));
+                    }
+                })
             }
 
             
@@ -274,6 +288,63 @@ function lolTierInfo(nickname) {
         return "존재하지 않는 소환사명이래요. 오타를 확인한 후 다시 검색해 주세요. 😥"
     }
 
+}
+
+function ShowAllTier(type)
+{
+    var circleTierList = []
+    var circleTierNoRankList = []
+
+    var replyMessage = ""
+    Object.keys(tierList).forEach((key) => {
+
+        var score = TierCalculator(tierList[key][type]["tier"]) + RankCalculator(tierList[key][type]["rank"]) + tierList[key][type]["leaguepoint"];
+
+        if(tierList[key][type]["tier"] != "랭크 없음")
+            circleTierList.push([key,score]);
+        else
+            circleTierNoRankList.push([key]);
+    });
+
+    circleTierList.sort(function(a,b) {
+        if(b[1] != a[1])
+            return b[1] - a[1];
+        else
+            return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
+    })
+    Log.d(circleTierList);
+    circleTierNoRankList.sort();
+
+    for(var i=0;i<circleTierList.length;i++)
+    {
+        if(tierList[circleTierList[i][0]][type]["tier"] == "Master")
+            replyMessage += "💜";
+        else if(tierList[circleTierList[i][0]][type]["tier"] == "Diamond")
+            replyMessage += "💙";
+        else if(tierList[circleTierList[i][0]][type]["tier"] == "Emerald")
+            replyMessage += "❤";   
+        else if(tierList[circleTierList[i][0]][type]["tier"] == "Platinum")
+            replyMessage += "💚";   
+        else if(tierList[circleTierList[i][0]][type]["tier"] == "Gold")
+            replyMessage += "💛";   
+        else if(tierList[circleTierList[i][0]][type]["tier"] == "Silver")
+            replyMessage += "🤍";   
+        else if(tierList[circleTierList[i][0]][type]["tier"] == "Bronze")
+            replyMessage += "🤎";
+        
+        if(tierList[circleTierList[i][0]][type]["tier"] == "Master")
+            replyMessage += " " + circleTierList[i][0] + " " + tierList[circleTierList[i][0]][type]["tier"] + " " + tierList[circleTierList[i][0]][type]["leaguepoint"] + " LP\n"
+        else
+            replyMessage += " " + circleTierList[i][0] + " " + tierList[circleTierList[i][0]][type]["tier"] + " " + tierList[circleTierList[i][0]][type]["rank"] + " " + tierList[circleTierList[i][0]][type]["leaguepoint"] + " LP\n"
+    }
+    for(var i=0;i<circleTierNoRankList.length;i++)
+    {
+        replyMessage += "🖤 " + circleTierNoRankList[i][0] + " 랭크 없음";
+        if(i!=circleTierNoRankList.length-1)
+            replyMessage += "\n";
+    }
+
+    return replyMessage;
 }
 
 function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
@@ -314,55 +385,55 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
         }
 
         //////////////// Command part
-        else if(msg.startsWith("/명령어") || msg.startsWith("/?"))  {
-            replyMessage += "하트가 배운 것 🐶\n\n"
-            replyMessage += "/날씨 지역\n"
-            replyMessage += "날씨를 알 수 있어요. 내일 서울 날씨도 검색이 가능해요!\n\n"
+        // else if(msg.startsWith("/명령어") || msg.startsWith("/?"))  {
+        //     replyMessage += "하트가 배운 것 🐶\n\n"
+        //     replyMessage += "/날씨 지역\n"
+        //     replyMessage += "날씨를 알 수 있어요. 내일 서울 날씨도 검색이 가능해요!\n\n"
 
-            replyMessage += "/동그라미 뉴스\n"
-            replyMessage += "동그라미에서 있는 일을 보여줘요.\n\n"
+        //     replyMessage += "/동그라미 뉴스\n"
+        //     replyMessage += "동그라미에서 있는 일을 보여줘요.\n\n"
 
-            replyMessage += "/동그라미 뉴스 등록 ~~~~\n"
-            replyMessage += "동그라미 뉴스를 등록할 수 있어요. ~~~~ 부분에 내용을 입력하면 되요.\n\n"
+        //     replyMessage += "/동그라미 뉴스 등록 ~~~~\n"
+        //     replyMessage += "동그라미 뉴스를 등록할 수 있어요. ~~~~ 부분에 내용을 입력하면 되요.\n\n"
 
-            replyMessage += "/동그라미 뉴스 참가 1\n"
-            replyMessage += "뉴스의 번호를 입력하면 내가 원하는 뉴스에 멤버로 참가할 수 있어요.\n\n"
+        //     replyMessage += "/동그라미 뉴스 참가 1\n"
+        //     replyMessage += "뉴스의 번호를 입력하면 내가 원하는 뉴스에 멤버로 참가할 수 있어요.\n\n"
 
-            replyMessage += "/동그라미 뉴스 취소 1\n"
-            replyMessage += "뉴스의 번호를 입력하면 내가 참가한 뉴스를 취소할 수 있어요. 작성자는 취소할 수 없어요.\n\n"
+        //     replyMessage += "/동그라미 뉴스 취소 1\n"
+        //     replyMessage += "뉴스의 번호를 입력하면 내가 참가한 뉴스를 취소할 수 있어요. 작성자는 취소할 수 없어요.\n\n"
 
-            replyMessage += "/동그라미 뉴스 삭제 1\n"
-            replyMessage += "뉴스의 번호를 입력하면 내가 작성한 뉴스를 삭제할 수 있어요. 작성자가 아니면 삭제할 수 없어요.\n\n"
+        //     replyMessage += "/동그라미 뉴스 삭제 1\n"
+        //     replyMessage += "뉴스의 번호를 입력하면 내가 작성한 뉴스를 삭제할 수 있어요. 작성자가 아니면 삭제할 수 없어요.\n\n"
 
-            replyMessage += "/동그라미 티어\n"
-            replyMessage += "동그라미 나라 사람들의 티어를 보여줘요. 티어는 본 계정 솔랭 티어 기준이에요. 갱신을 원하면 /롤 명령어를 통해 한번 검색을 해야해요.\n\n"
+        //     replyMessage += "/동그라미 티어\n"
+        //     replyMessage += "동그라미 나라 사람들의 티어를 보여줘요. 티어는 본 계정 솔랭 티어 기준이에요. 갱신을 원하면 /롤 명령어를 통해 한번 검색을 해야해요.\n\n"
 
-            replyMessage += "/동그라미 탑\n"
-            replyMessage += "동그라미 나라 탑 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
+        //     replyMessage += "/동그라미 탑\n"
+        //     replyMessage += "동그라미 나라 탑 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
 
-            replyMessage += "/동그라미 정글\n"
-            replyMessage += "동그라미 나라 정글 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
+        //     replyMessage += "/동그라미 정글\n"
+        //     replyMessage += "동그라미 나라 정글 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
             
-            replyMessage += "/동그라미 미드\n"
-            replyMessage += "동그라미 나라 미드 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
+        //     replyMessage += "/동그라미 미드\n"
+        //     replyMessage += "동그라미 나라 미드 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
 
-            replyMessage += "/동그라미 봇\n"
-            replyMessage += "동그라미 나라 봇 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
+        //     replyMessage += "/동그라미 봇\n"
+        //     replyMessage += "동그라미 나라 봇 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
 
-            replyMessage += "/동그라미 서포터\n"
-            replyMessage += "동그라미 나라 서포터 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
+        //     replyMessage += "/동그라미 서포터\n"
+        //     replyMessage += "동그라미 나라 서포터 라인을 가는 사람들을 보여줘요. 본 계정 솔랭 전적을 기준으로 적었어요.\n\n";
 
-            replyMessage += "/롤 아이디\n"
-            replyMessage += "아이디의 레벨과 랭크 티어를 알려줘요.\n\n";
+        //     replyMessage += "/롤 아이디\n"
+        //     replyMessage += "아이디의 레벨과 랭크 티어를 알려줘요.\n\n";
 
-            replyMessage += "/오늘의 운세\n"
-            replyMessage += "자몽님의 운세를 대신 알려줘요.\n\n";
+        //     replyMessage += "/오늘의 운세\n"
+        //     replyMessage += "자몽님의 운세를 대신 알려줘요.\n\n";
 
-            replyMessage += "/전적 아이디\n"
-            replyMessage += "최근 10판의 전적과 승률을 알려줘요.\n\n";
+        //     replyMessage += "/전적 아이디\n"
+        //     replyMessage += "최근 10판의 전적과 승률을 알려줘요.\n\n";
             
-            // /날씨, 동그라미 뉴스, /동그라미 뉴스 참가, /동그라미 뉴스 등록, /동그라미 뉴스 취소, /동그라미 뉴스 삭제 1, /오늘의 운세, /동그라미 티어, /동그라미 라인별,
-        }
+        //     // /날씨, 동그라미 뉴스, /동그라미 뉴스 참가, /동그라미 뉴스 등록, /동그라미 뉴스 취소, /동그라미 뉴스 삭제 1, /오늘의 운세, /동그라미 티어, /동그라미 라인별,
+        // }
 
         else if(msg.startsWith("/날씨"))  {
         
@@ -398,6 +469,8 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 //show news
                 replyMessage = "동그라미 일간 뉴스 🌻\n\n"
 
+                news = JSON.parse(DataBase.getDataBase("news"));
+
                 if(news.length != 0)
                 {
                     for(var i=0;i<news.length;i++)
@@ -431,12 +504,30 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     if(info[3] != undefined)
                     {
                         var body = msg.replace("/동그라미 뉴스 등록 ","");
-                        news.push({writer : sender, news : body,participants : [sender]});
+                        
+                        var cnt = 0;
+                        for(var i=0;i<news.length;i++)
+                        {
+                            if(news[i].writer == sender)
+                            {
+                                cnt++;
+                            }
+                        }
 
-                        DataBase.removeDataBase("news");
-                        DataBase.setDataBase("news",JSON.stringify(news));
+                        if(cnt < 2)
+                        {
 
-                        replyMessage = "새로운 뉴스가 등록되었습니다."
+                            news.push({writer : sender, news : body,participants : [sender]});
+
+                            DataBase.removeDataBase("news");
+                            DataBase.setDataBase("news",JSON.stringify(news));
+
+                            replyMessage = "새로운 뉴스를 등록했습니다. 🌈"
+                        }
+                        else
+                        {
+                            replyMessage = "뉴스는 2개까지 등록이 가능해요. 🐷"
+                        }
                     }
                     else
                     {
@@ -532,7 +623,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                             DataBase.removeDataBase("news");
                             DataBase.setDataBase("news",JSON.stringify(news));
 
-                            replyMessage = news_num + "번 뉴스가 삭제되었습니다."
+                            replyMessage = news_num + "번 뉴스를 삭제했어요."
                         }
                         else
                         {
@@ -547,6 +638,8 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 else if(info[2] == "초기화")
                 {
                     news = []
+                    DataBase.removeDataBase("news");
+                    DataBase.setDataBase("news",JSON.stringify(news));
                 }
             }
         }
@@ -565,59 +658,21 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
         else if(msg.startsWith("/동그라미 서포터") || msg.startsWith("/동그라미 서폿")){
             replyMessage = "동그라미 서포터 소개 🐷\n\n1군 💌 겸이 루미 몽뎅 문어 민지 쁘아 사카 선영 승연 으릉 이불 자몽 하기\n2군 💌 던필 재화 현이";
         }
-        else if(msg.equals("/동그라미 티어"))
+        else if(msg.equals("/동그라미 솔랭"))
         {
-            replyMessage = "💎 동그라미 랭크 현황 💎\n\n";
+            replyMessage = "💎 동그라미 개인 랭크 현황 💎\n\n";
 
-            var circleTierList = []
-            var circleTierNoRankList = []
-            Object.keys(tierList).forEach((key) => {
+            var tierType = "solo";
 
-                var score = TierCalculator(tierList[key]["tier"]) + RankCalculator(tierList[key]["rank"]) + tierList[key]["leaguepoint"];
+            replyMessage += ShowAllTier(tierType);
+        }
+        else if(msg.equals("/동그라미 자랭"))
+        {
+            replyMessage = "💎 동그라미 자유 랭크 현황 💎\n\n";
 
-                if(tierList[key]["tier"] != "랭크 없음")
-                    circleTierList.push([key,score]);
-                else
-                    circleTierNoRankList.push([key]);
-            });
+            var tierType = "team";
 
-            circleTierList.sort(function(a,b) {
-                if(b[1] != a[1])
-                    return b[1] - a[1];
-                else
-                    return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
-            })
-
-            circleTierNoRankList.sort();
-
-            for(var i=0;i<circleTierList.length;i++)
-            {
-                if(tierList[circleTierList[i][0]]["tier"] == "Master")
-                    replyMessage += "💜";
-                else if(tierList[circleTierList[i][0]]["tier"] == "Diamond")
-                    replyMessage += "💙";
-                else if(tierList[circleTierList[i][0]]["tier"] == "Emerald")
-                    replyMessage += "❤";   
-                else if(tierList[circleTierList[i][0]]["tier"] == "Platinum")
-                    replyMessage += "💚";   
-                else if(tierList[circleTierList[i][0]]["tier"] == "Gold")
-                    replyMessage += "💛";   
-                else if(tierList[circleTierList[i][0]]["tier"] == "Silver")
-                    replyMessage += "🤍";   
-                else if(tierList[circleTierList[i][0]]["tier"] == "Bronze")
-                    replyMessage += "🤎";
-                
-                if(tierList[circleTierList[i][0]]["tier"] == "Master")
-                    replyMessage += " " + circleTierList[i][0] + " " + tierList[circleTierList[i][0]]["tier"] + " " + tierList[circleTierList[i][0]]["leaguepoint"] + " LP\n"
-                else
-                    replyMessage += " " + circleTierList[i][0] + " " + tierList[circleTierList[i][0]]["tier"] + " " + tierList[circleTierList[i][0]]["rank"] + " " + tierList[circleTierList[i][0]]["leaguepoint"] + " LP\n"
-            }
-            for(var i=0;i<circleTierNoRankList.length;i++)
-            {
-                replyMessage += "🖤 " + circleTierNoRankList[i][0] + " 랭크 없음";
-                if(i!=circleTierNoRankList.length-1)
-                    replyMessage += "\n";
-            }
+            replyMessage += ShowAllTier(tierType);
         }
         else if(msg.startsWith("/롤 ")){
             var result = lolTierInfo(msg.replace("/롤 ",""));
@@ -639,7 +694,8 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     {
                         var data = getRiotLeagueData(json.id);
 
-                        var flag = false;
+                        var teamflag = false;
+                        var soloflag = false;
 
                         for(var i=0;i<data.length;i++)
                         {
@@ -648,25 +704,39 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
 
                             if(data[i].queueType == "RANKED_SOLO_5x5")
                             {
-                                tierList[info[1]].tier = tier;
-                                tierList[info[1]].rank = rank;
-                                tierList[info[1]].leaguepoint = data[i].leaguePoints;
+                                tierList[info[1]]["solo"].tier = tier;
+                                tierList[info[1]]["solo"].rank = rank;
+                                tierList[info[1]]["solo"].leaguepoint = data[i].leaguePoints;
 
-                                flag = true;
-                            }                          
+                                soloflag = true;
+                            }
+
+                            if(data[i].queueType == "RANKED_FLEX_SR")
+                            {
+                                tierList[info[1]]["team"].tier = tier;
+                                tierList[info[1]]["team"].rank = rank;
+                                tierList[info[1]]["team"].leaguepoint = data[i].leaguePoints;
+
+                                teamflag = true;
+                            }                             
                         }
 
-                        if(!flag)
+                        if(!soloflag)
                         {
-                            tierList[info[1]].tier = "랭크 없음";
-                            tierList[info[1]].rank = 0;
-                            tierList[info[1]].leaguepoint = 0;
+                            tierList[info[1]]["solo"].tier = "랭크 없음";
+                            tierList[info[1]]["solo"].rank = 0;
+                            tierList[info[1]]["solo"].leaguepoint = 0;
+                        }
+
+                        if(!teamflag)
+                        {
+                            tierList[info[1]]["team"].tier = "랭크 없음";
+                            tierList[info[1]]["team"].rank = 0;
+                            tierList[info[1]]["team"].leaguepoint = 0;
                         }
                         
                         DataBase.removeDataBase("tierlist");
                         DataBase.setDataBase("tierlist",JSON.stringify(tierList));
-
-                        Log.d(JSON.stringify(tierList));
                     }     
                 }
             }
@@ -715,57 +785,64 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
         }
         else if(msg.startsWith("/전적"))
         {
-            var nickname = msg.replace("/전적 ","");
-            if(nickname.length == 2)
+            try
             {
-                nickname = nickname[0] + " " + nickname[1];
-            }
-
-            var idData = getRiotId(nickname);
-            
-            if(!idData.status)
-            {
-                nickname = idData.name;
-                var puuid = idData.puuid;
-
-                replyMessage = "최근 [ " + nickname + " ] 님의 게임 전적입니다.\n\n";
-                
-                var matchId = getRiotMatchId(puuid);
-
-                var matchResult = ""
-
-                var winCnt = 0;
-
-                for(var i=0;i<matchId.length;i++)
+                var nickname = msg.replace("/전적 ","");
+                if(nickname.length == 2)
                 {
-                    var matchData = getRiotMatchData(matchId[i]);
-
-                    for(var j=0;j<matchData.info.participants.length;j++)
-                    {
-                        if(puuid == matchData.info.participants[j].puuid)
-                        {
-                            matchResult += gameType[matchData.info.queueId] + " : " + championData[matchData.info.participants[j].championName] + " (" + matchData.info.participants[j].kills + "/" + matchData.info.participants[j].deaths + "/" + matchData.info.participants[j].assists + ") ";
-
-                            if(matchData.info.participants[j].win)
-                            {
-                                matchResult += "❤ 승리";
-                                winCnt++;
-                            }
-                            else
-                                matchResult += "💔 패배";
-                            break;
-                        }
-                    }
-                    if(i != matchId.length-1)
-                        matchResult += "\n";
+                    nickname = nickname[0] + " " + nickname[1];
                 }
 
-                replyMessage += winCnt + "승 " + (10-winCnt) + "패 승률 " + winCnt/10 * 100 + "%\n\n"
-                replyMessage += matchResult;
+                var idData = getRiotId(nickname);
+                
+                if(!idData.status)
+                {
+                    nickname = idData.name;
+                    var puuid = idData.puuid;
+
+                    replyMessage = "최근 [ " + nickname + " ] 님의 게임 전적입니다.\n\n";
+                    
+                    var matchId = getRiotMatchId(puuid);
+
+                    var matchResult = ""
+
+                    var winCnt = 0;
+
+                    for(var i=0;i<matchId.length;i++)
+                    {
+                        var matchData = getRiotMatchData(matchId[i]);
+
+                        for(var j=0;j<matchData.info.participants.length;j++)
+                        {
+                            if(puuid == matchData.info.participants[j].puuid)
+                            {
+                                matchResult += gameType[matchData.info.queueId] + " : " + championData[matchData.info.participants[j].championName] + " (" + matchData.info.participants[j].kills + "/" + matchData.info.participants[j].deaths + "/" + matchData.info.participants[j].assists + ") ";
+
+                                if(matchData.info.participants[j].win)
+                                {
+                                    matchResult += "❤ 승리";
+                                    winCnt++;
+                                }
+                                else
+                                    matchResult += "💔 패배";
+                                break;
+                            }
+                        }
+                        if(i != matchId.length-1)
+                            matchResult += "\n";
+                    }
+
+                    replyMessage += winCnt + "승 " + (10-winCnt) + "패 승률 " + winCnt/10 * 100 + "%\n\n"
+                    replyMessage += matchResult;
+                }
+                else
+                {
+                    replyMessage = "존재하지 않는 소환사명이래요. 오타를 확인한 후 다시 검색해 주세요. 😥"
+                }
             }
-            else
+            catch(e)
             {
-                replyMessage = "존재하지 않는 소환사명이래요. 오타를 확인한 후 다시 검색해 주세요. 😥"
+                replyMessage = "Riot에서 정보를 전달해 주지 않았습니다. 조금 있다가 다시 시도해 주세요. 😥"
             }
         }
         else if(msg.startsWith("/하기하다")){
