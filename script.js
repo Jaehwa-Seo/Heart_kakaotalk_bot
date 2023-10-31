@@ -462,9 +462,9 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 replyMessage = "원하는 지역을 뒤에 적어줘요. 😉\n예시) /날씨 서울";
             }
         }
-        else if(msg.startsWith("/동그라미 뉴스"))
+        else if(msg.startsWith("/뉴스"))
         {
-            if(msg == "/동그라미 뉴스")
+            if(msg == "/ 뉴스")
             {
                 //show news
                 replyMessage = "동그라미 일간 뉴스 🌻\n\n"
@@ -499,11 +499,11 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             {
                 var info = msg.split(' ');
 
-                if(info[2] == "등록")
+                if(info[1] == "등록")
                 {
-                    if(info[3] != undefined)
+                    if(info[2] != undefined)
                     {
-                        var body = msg.replace("/동그라미 뉴스 등록 ","");
+                        var body = msg.replace("/뉴스 등록 ","");
                         
                         var cnt = 0;
                         for(var i=0;i<news.length;i++)
@@ -531,16 +531,16 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     }
                     else
                     {
-                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 등록 ~~~~ "
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /뉴스 등록 ~~~~ "
                     }
                 }
 
                 //참가
-                else if(info[2] == "참가")
+                else if(info[1] == "참가")
                 {
-                    var news_num = Number(msg.replace("/동그라미 뉴스 참가 ",""));
+                    var news_num = Number(msg.replace("/뉴스 참가 ",""));
 
-                    if(info[3] != undefined && Number.isInteger(news_num))
+                    if(info[2] != undefined && Number.isInteger(news_num))
                     {
                         
                         if(news[news_num-1] == undefined)
@@ -563,14 +563,14 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     }
                     else
                     {
-                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 참가 1"
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /뉴스 참가 1"
                     }
                 }
-                else if(info[2] == "취소")
+                else if(info[1] == "취소")
                 {
-                    var news_num = Number(msg.replace("/동그라미 뉴스 취소 ",""));
+                    var news_num = Number(msg.replace("/뉴스 취소 ",""));
 
-                    if(info[3] != undefined && Number.isInteger(news_num))
+                    if(info[2] != undefined && Number.isInteger(news_num))
                     {
                         if(news[news_num-1] == undefined)
                         {
@@ -604,13 +604,42 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                     }
                     else
                     {
-                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 취소 1"
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /뉴스 취소 1"
                     }
                 }
-                else if(info[2] == "삭제")
+                else if(info[1] == "삭제")
                 {
-                    var news_num = Number(msg.replace("/동그라미 뉴스 삭제 ",""));
-                    if(info[3] != undefined && Number.isInteger(news_num))
+                    var news_num = Number(msg.replace("/뉴스 삭제 ",""));
+                    if(info[2] != undefined && Number.isInteger(news_num))
+                    {
+                        if(news[news_num-1] == undefined)
+                        {
+                            replyMessage = "뉴스를 찾을 수 없습니다. 번호를 확인해주세요."
+                        }
+                        else if(news[news_num-1].writer == sender)
+                        {
+                            news[news_num-1].news = body;
+
+                            DataBase.removeDataBase("news");
+                            DataBase.setDataBase("news",JSON.stringify(news));
+
+                            replyMessage = news_num + "번 뉴스를 수정했어요."
+                        }
+                        else
+                        {
+                            replyMessage = "뉴스의 작성자가 아니면 삭제할 수 없습니다."
+                        }
+                    }
+                    else
+                    {
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /뉴스 삭제 1"
+                    }
+                }
+                else if(info[1] == "수정")
+                {
+                    var news_num = Number(info[2]);
+                    var body = Number(msg.replace("/뉴스 수정 " + info[2] + " ",""));
+                    if(info[2] != undefined && Number.isInteger(news_num) && info[4] != undefined)
                     {
                         if(news[news_num-1] == undefined)
                         {
@@ -623,16 +652,16 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                             DataBase.removeDataBase("news");
                             DataBase.setDataBase("news",JSON.stringify(news));
 
-                            replyMessage = news_num + "번 뉴스를 삭제했어요."
+                            replyMessage = news_num + "번 뉴스를 수정했어요."
                         }
                         else
                         {
-                            replyMessage = "뉴스의 작성자가 아니면 삭제할 수 없습니다."
+                            replyMessage = "뉴스의 작성자가 아니면 수정할 수 없습니다."
                         }
                     }
                     else
                     {
-                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /동그라미 뉴스 삭제 1"
+                        replyMessage = "형식을 확인하고 다시 입력해 주세요. /뉴스 수정 1 수정할 내용"
                     }
                 }
                 else if(info[2] == "초기화")
