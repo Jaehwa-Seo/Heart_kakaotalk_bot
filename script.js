@@ -349,7 +349,7 @@ function ShowAllTier(type)
 
 function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
     
-    if(room == "동그라미 봇"){
+    if(room == "동그라미 봇 테스트"){
 
         var replyMessage = ""
 
@@ -464,7 +464,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
         }
         else if(msg.startsWith("/뉴스"))
         {
-            if(msg == "/ 뉴스")
+            if(msg == "/뉴스")
             {
                 //show news
                 replyMessage = "동그라미 일간 뉴스 🌻\n\n"
@@ -526,6 +526,8 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                         }
                         else
                         {
+                            Log.d(news);
+                            Log.d(cnt);
                             replyMessage = "뉴스는 2개까지 등록이 가능해요. 🐷"
                         }
                     }
@@ -618,12 +620,12 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                         }
                         else if(news[news_num-1].writer == sender)
                         {
-                            news[news_num-1].news = body;
+                            news.splice(news_num-1, 1); 
 
                             DataBase.removeDataBase("news");
                             DataBase.setDataBase("news",JSON.stringify(news));
 
-                            replyMessage = news_num + "번 뉴스를 수정했어요."
+                            replyMessage = news_num + "번 뉴스를 삭제했어요."
                         }
                         else
                         {
@@ -638,7 +640,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 else if(info[1] == "수정")
                 {
                     var news_num = Number(info[2]);
-                    var body = Number(msg.replace("/뉴스 수정 " + info[2] + " ",""));
+                    var body = msg.replace("/뉴스 수정 " + info[2] + " ","");
                     if(info[2] != undefined && Number.isInteger(news_num) && info[4] != undefined)
                     {
                         if(news[news_num-1] == undefined)
@@ -647,7 +649,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                         }
                         else if(news[news_num-1].writer == sender)
                         {
-                            news.splice(news_num-1, 1); 
+                            news[news_num-1].news = body;
 
                             DataBase.removeDataBase("news");
                             DataBase.setDataBase("news",JSON.stringify(news));
@@ -664,7 +666,7 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                         replyMessage = "형식을 확인하고 다시 입력해 주세요. /뉴스 수정 1 수정할 내용"
                     }
                 }
-                else if(info[2] == "초기화")
+                else if(info[1] == "초기화")
                 {
                     news = []
                     DataBase.removeDataBase("news");
@@ -673,19 +675,19 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             }
         }
         else if(msg.startsWith("/동그라미 탑")){
-            replyMessage = "동그라미 탑 소개 🐷\n\n1군 💌 맹독 코포 클립 파닭\n2군 💌 말랑 몽뎅 사카 승연 자몽 하둔";
+            replyMessage = "동그라미 탑 소개 🐷\n\n1군 💌 맹독 코포 클립 파닭\n2군 💌 말랑 몽뎅 승연 자몽 하둔";
         }
         else if(msg.startsWith("/동그라미 정글")){
             replyMessage = "동그라미 정글 소개 🐷\n\n1군 💌 다훈 던필 말랑 문어 미자 하기 하둔\n2군 💌 맹독 민지 으릉 재화 파닭";
         }
         else if(msg.startsWith("/동그라미 미드")){
-            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 사카 이불 재화 현이\n2군 💌 루미 선영 코포";
+            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 이불 재화 현이\n2군 💌 루미 선영 코포";
         }
         else if(msg.startsWith("/동그라미 봇") || msg.startsWith("/동그라미 원딜")){
             replyMessage = "동그라미 봇 소개 🐷\n\n1군 💌 겸이 루미 승연 자몽 재화 클립 파닭 하둔 현이\n2군 💌 미자 쁘아 코포";
         }
         else if(msg.startsWith("/동그라미 서포터") || msg.startsWith("/동그라미 서폿")){
-            replyMessage = "동그라미 서포터 소개 🐷\n\n1군 💌 겸이 루미 몽뎅 문어 민지 쁘아 사카 선영 승연 으릉 이불 자몽 하기\n2군 💌 던필 재화 현이";
+            replyMessage = "동그라미 서포터 소개 🐷\n\n1군 💌 겸이 루미 몽뎅 문어 민지 쁘아 선영 승연 으릉 이불 자몽 하기\n2군 💌 던필 재화 현이";
         }
         else if(msg.equals("/동그라미 솔랭"))
         {
@@ -702,6 +704,10 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             var tierType = "team";
 
             replyMessage += ShowAllTier(tierType);
+        }
+        else if(msg.startsWith("/동그라미 생일"))
+        {
+            replyMessage = "🎉 동그라미 생일 🎉\n✨ 따뜻한 말 부탁해요 ✨\n\n01월 29일 - 하둔\n02월 28일 - 현이\n06월 10일 - 으릉 클립\n09월 29일 - 선영\n10월 06일 - 루미\n10월 29일 - 겸이\n10월 30일 - 맹독\n12월 23일 - 하기\n12월 25일 - 재화";
         }
         else if(msg.startsWith("/롤 ")){
             var result = lolTierInfo(msg.replace("/롤 ",""));
@@ -811,6 +817,117 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             }catch(e)  {
                 replyMessage = "지금 운세를 하트가 알 수 없어요. 😯";
             }
+        }
+        else if(msg == "/점수")
+        {
+            var jsonp = function(url)
+            {
+                var script = window.document.createElement('script');
+                script.async = true;
+                script.src = url;
+                script.onerror = function()
+                {
+                    alert('Can not access JSONP file.')
+                };
+                var done = false;
+                script.onload = script.onreadystatechange = function()
+                {
+                    if (!done && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete'))
+                    {
+                        done = true;
+                        script.onload = script.onreadystatechange = null;
+                        if (script.parentNode)
+                        {
+                            return script.parentNode.removeChild(script);
+                        }
+                    }
+                };
+                window.document.getElementsByTagName('head')[0].appendChild(script);
+            };
+
+            var query = function (sql, callback) {
+                var url = 'https://spreadsheets.google.com/a/google.com/tq?',
+                    params = {
+                        key: '1HChfMTew04Quy0LuWRckUW9ovmto5uZQ0NAyKmGQKx0',
+                        tq: encodeURIComponent(sql),
+                        tqx: 'responseHandler:' + callback
+                    },
+                    qs = [];
+                for (var key in params) {
+                    qs.push(key + '=' + params[key]);
+                }
+                url += qs.join('&');
+                return jsonp(url); // JSONP 도우미 호출
+            }
+            
+            var my_callback = function (data) {
+                data = parse(data); // 데이터 parse
+                //불러온 데이터 조작
+                for (var i = 0; i < datas.length; i++) {
+                    if (JSON.stringify(datas[i]) == JSON.stringify(data)) {
+                        return false;
+                    }
+                }
+                datas.push(data);
+            
+                // HTML 헤더의 값을 추출
+                var col = [];
+                for (var i = 0; i < data.length; i++) {
+                    for (var key in data[i]) {
+                        if (col.indexOf(key) === -1) {
+                            col.push(key);
+                        }
+                    }
+                }
+                // 받아 온 데이터 커스텀 
+                var table = document.querySelector("#tagTable table");
+                if (table === null || table == undefined) {
+                    // 동적 테이블 생성
+                    table = document.createElement("table");
+            
+                    // HTML 테이블 헤더 생성
+                    var tr = table.insertRow(-1);
+                    for (var i = 0; i < col.length; i++) {
+                        var th = document.createElement("th");
+                        th.innerHTML = col[i];
+                        tr.appendChild(th);
+                    }
+                    // HTML 테이블 ROW 생성
+                    for (var i = 1; i < data.length; i++) {
+                        tr = table.insertRow(-1);
+                        for (var j = 0; j < col.length; j++) {
+                            var text = data[i][col[j]];
+                            var tabCell = tr.insertCell(-1);
+                            tabCell.innerHTML = data[i][col[j]];
+                            var text = data[i][col[j]];
+                            //tabCell.click
+                            tabCell.innerHTML = '<span class="select-data input-tag" data-tag="' + text + '">' + text + '</span>';
+                            tabCell.setAttribute("onclick","setDataToTag('" + text + "');");
+                            //tabCell.innerHTML = '<span class="select-data input-tag" data-tag="' + text + '" onclick="setDataToTag(\'' + text +'\')">' + text + '</span>';
+                        }
+                    }
+                    // 마지막으로 JSON 데이터로 새로 만든 테이블을 컨테이너에 추가
+                    var divContainer = document.getElementById("tagTable");
+                    divContainer.innerHTML = "";
+                    divContainer.appendChild(table);
+                    $("#tagTable tr td").each(function(i, elem) {
+                        if($(this).find(".select-data").text() != "") {
+                            $(this).addClass("select-tag");
+                        }
+                    });
+                } else {
+                    // 테이블 행 동적 추가
+                    for (var i = 1; i < data.length; i++) {
+                        var tr = table.insertRow();
+                        for (var j = 0; j < col.length; j++) {
+                            var tabCell = tr.insertCell(-1);
+                            tabCell.innerHTML = data[i][col[j]];
+                        }
+                    }
+                }
+            
+            }
+            query('select *', 'my_callback');
         }
         else if(msg.startsWith("/전적"))
         {
