@@ -172,6 +172,39 @@ function getRiotId(nickname)
     return json;
 }
 
+function getRiotAccount(puuid)
+{
+    var data = org.jsoup.Jsoup.connect("https://asia.api.riotgames.com/riot/account/v1/accounts/by-puuid/"+ puuid +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
+    .get();
+
+    var json = JSON.parse(data.text());
+
+    return json;
+}
+
+function getRiotIdWithTag(nickname,tag)
+{
+    var encodeNickname = encodeURI(nickname); 
+    var encodeTag = encodeURI(tag); 
+     
+    var data = org.jsoup.Jsoup.connect("https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/"+ encodeNickname + "/" + encodeTag +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
+    .get();
+
+    var json = JSON.parse(data.text());
+
+    return json;
+}
+
+function getRiotIdWithPuuid(puuid)
+{
+    var data = org.jsoup.Jsoup.connect("https://kr.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/"+ puuid +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
+    .get();
+
+    var json = JSON.parse(data.text());
+
+    return json;
+}
+
 function getRiotLeagueData(id)
 {
     var data = org.jsoup.Jsoup.connect("https://kr.api.riotgames.com/lol/league/v4/entries/by-summoner/"+ id +"?api_key=" + key).ignoreContentType(true).ignoreHttpErrors(true)
@@ -207,12 +240,38 @@ function lolTierInfo(nickname) {
         nickname = nickname[0] + " " + nickname[1];
     }
 
-    var json = getRiotId(nickname);
+    var check_type = nickname.split(' ');
+
+    var json, name
+
+    if(check_type[check_type.length-1][0] == '#')
+    {
+        var concatID = ""
+        for(var i=0;i<check_type.length-1;i++)
+        {
+            concatID = concatID + check_type[i]
+        }
+
+        var data = getRiotIdWithTag(concatID,check_type[check_type.length-1].substr(1))
+
+        var puuid = data.puuid
+
+        json = getRiotIdWithPuuid(puuid)
+
+        name = data.gameName
+    }
+    else
+    {
+        json = getRiotId(nickname);
+
+        var data = getRiotAccount(json.puuid)
+
+        name = data.gameName
+    }
 
     if(!json.status)
     {
         var id = json.id;
-        var name = json.name;
 
         var level = "🐻 현재 레벨 ▶ " + json.summonerLevel;
 
@@ -230,10 +289,8 @@ function lolTierInfo(nickname) {
             {
                 solorank = "🐻 개인 랭크 ▶ " + tier + " " + rank + " " + json2[i].leaguePoints + " LP";
                 Object.keys(tierList).forEach((key) => {
-                    if(name == tierList[key]["id"])
+                    if(json.puuid == tierList[key]["puuid"])
                     {
-                        Log.d(name)
-                        Log.d(tierList[key]["id"])
                         tierList[key]["solo"]["tier"] = tier;
                         tierList[key]["solo"]["rank"] = rank;
                         tierList[key]["solo"]["leaguepoint"] = json2[i].leaguePoints;
@@ -249,10 +306,8 @@ function lolTierInfo(nickname) {
                 teamrank = "🐻 자유 랭크 ▶ " + tier + " " + rank + " " + json2[i].leaguePoints + " LP";
 
                 Object.keys(tierList).forEach((key) => {
-                    if(name == tierList[key]["id"])
+                    if(json.puuid == tierList[key]["puuid"])
                     {
-                        Log.d(name)
-                        Log.d(tierList[key]["id"])
                         tierList[key]["team"]["tier"] = tier;
                         tierList[key]["team"]["rank"] = rank;
                         tierList[key]["team"]["leaguepoint"] = json2[i].leaguePoints;
@@ -285,6 +340,7 @@ function lolTierInfo(nickname) {
     }
     else
     {
+        
         return "존재하지 않는 소환사명이래요. 오타를 확인한 후 다시 검색해 주세요. 😥"
     }
 
@@ -678,10 +734,10 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             replyMessage = "동그라미 탑 소개 🐷\n\n1군 💌 맹독 코포 클립 파닭\n2군 💌 말랑 몽뎅 승연 자몽 하둔";
         }
         else if(msg.startsWith("/동그라미 정글")){
-            replyMessage = "동그라미 정글 소개 🐷\n\n1군 💌 다훈 던필 말랑 문어 미자 하기 하둔\n2군 💌 맹독 민지 으릉 재화 파닭";
+            replyMessage = "동그라미 정글 소개 🐷\n\n1군 💌 다훈 던필 말랑 문어 미자 병제 하기 하둔\n2군 💌 맹독 민지 으릉 재화 파닭";
         }
         else if(msg.startsWith("/동그라미 미드")){
-            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 이불 재화 현이\n2군 💌 루미 선영 코포";
+            replyMessage = "동그라미 미드 소개 🐷\n\n1군 💌 말랑 이불 재화 현이\n2군 💌 루미 병제 선영 코포";
         }
         else if(msg.startsWith("/동그라미 봇") || msg.startsWith("/동그라미 원딜")){
             replyMessage = "동그라미 봇 소개 🐷\n\n1군 💌 겸이 루미 승연 자몽 재화 클립 파닭 하둔 현이\n2군 💌 미자 쁘아 코포";
@@ -934,19 +990,46 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             try
             {
                 var nickname = msg.replace("/전적 ","");
+
                 if(nickname.length == 2)
                 {
                     nickname = nickname[0] + " " + nickname[1];
                 }
 
-                var idData = getRiotId(nickname);
-                
-                if(!idData.status)
-                {
-                    nickname = idData.name;
-                    var puuid = idData.puuid;
+                var check_type = nickname.split(' ');
 
-                    replyMessage = "최근 [ " + nickname + " ] 님의 게임 전적입니다.\n\n";
+                var json, name
+
+                if(check_type[check_type.length-1][0] == '#')
+                {
+                    var concatID = ""
+                    for(var i=0;i<check_type.length-1;i++)
+                    {
+                        concatID = concatID + check_type[i]
+                    }
+
+                    var data = getRiotIdWithTag(concatID,check_type[check_type.length-1].substr(1))
+
+                    var puuid = data.puuid
+
+                    json = getRiotIdWithPuuid(puuid)
+
+                    name = data.gameName
+                }
+                else
+                {
+                    json = getRiotId(nickname);
+
+                    var data = getRiotAccount(json.puuid)
+
+                    name = data.gameName
+                }
+                
+                if(!json.status)
+                {
+                    var puuid = json.puuid;
+
+                    replyMessage = "최근 [ " + name + " ] 님의 게임 전적입니다.\n\n";
                     
                     var matchId = getRiotMatchId(puuid);
 
@@ -991,11 +1074,77 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
                 replyMessage = "Riot에서 정보를 전달해 주지 않았습니다. 조금 있다가 다시 시도해 주세요. 😥"
             }
         }
+        else if(msg.startsWith("/문어하다")){
+            replyMessage = "깊은 바닷속에 사는 문어를 깨우지 마세요. 다칠 수 있어요. 🐙";
+        }
+        else if(msg.startsWith("/으릉하다")){
+            replyMessage = "게임은 하기 싫어도 구경은 하고 싶어요. 으릉이는 지금 귀찮아요. 😴";
+        }
+        else if(msg.startsWith("/루미하다")){
+            replyMessage = "동그라미 나라 음성 채널에는 한 남자가 살고 있답니다. 그 이름은... 😲";
+        }
+        else if(msg.startsWith("/몽뎅하다")){
+            replyMessage = "심심한 당신 관심이 필요한가요? 그렇다면 이 사람을 찾아가요. 🎉";
+        }
+        else if(msg.startsWith("/코포하다")){
+            replyMessage = "코포라는 닉네임은 한국 폴리텍 대학에서 따온 말입니다. 😯";
+        }
+        else if(msg.startsWith("/미자하다")){
+            replyMessage = "경상도 삼총사의 큰 형님. 그 밑으로 코포 아저씨와 하둔 아저씨가 있답니다. 😝";
+        }
         else if(msg.startsWith("/하기하다")){
-            replyMessage = "게임 중 멘탈이 나가면 누누로 미드를 달리는 행동을 말해요. 따라하면 안 되겠죠? 😔";
+            replyMessage = "게임 중 멘탈이 나가면 싱싱 미역으로 변하는 현상을 말해요. 💦";
+        }
+        else if(msg.startsWith("/겸이하다")){
+            replyMessage = "겸이 형이 잘 자면 좋겠어요. 💤";
+        }
+        else if(msg.startsWith("/자몽하다")){
+            replyMessage = "라임 아닌 레몬 아닌 자몽. 하지만 진정한 이름은 홍주니입니다. 🦭";
+        }
+        else if(msg.startsWith("/병제하다")){
+            replyMessage = "대한민국을 지키는 군인 병제랍니다. 🏳";
+        }
+        else if(msg.startsWith("/선영하다")){
+            replyMessage = "플러팅의 고수 ENFJ 선영 누나예요. 하트도 꼬실 수 있을까? 🐶";
+        }
+        else if(msg.startsWith("/이불하다")){
+            replyMessage = "이불님은 도랸으로 닉네임을 바꿨어요. 입에 붙지 않는 도랸... 😫";
+        }
+        else if(msg.startsWith("/던필하다")){
+            replyMessage = "마초 스타일의 멋쟁이 던필 형이에요. ✨";
+        }
+        else if(msg.startsWith("/맹독하다")){
+            replyMessage = "귀여운 걸 좋아하는 맹독이 형. 근데 협곡에서 우르곳을 해요. 😨";
+        }
+        else if(msg.startsWith("/민지하다")){
+            replyMessage = "사실 파이크가 뉴진스 민지를 닮았다는 소문 들어보셨나요? 😤";
+        }
+        else if(msg.startsWith("/파닭하다")){
+            replyMessage = "파닭님은 치킨을 안 먹겠죠? 동족상잔은 잔인하니까... 🐔";
+        }
+        else if(msg.startsWith("/쁘아하다")){
+            replyMessage = "동그라미 막내 라인 쁘아예요. 그녀의 취미는 멋진 코스프레! 💕";
+        }
+        else if(msg.startsWith("/승연하다")){
+            replyMessage = "오늘의 헬스를 미루지 마세요. 승연님이 보고 있습니다. 👀";
+        }
+        else if(msg.startsWith("/하둔하다")){
+            replyMessage = "까칠한 아기 고양이... 사람이 된다면 이런 느낌일까? 😿";
+        }
+        else if(msg.startsWith("/골드하다")){
+            replyMessage = "따뜻한 마음을 가진 아저씨랍니다. 해치지 않아요. 😈";
+        }
+        else if(msg.startsWith("/다훈하다")){
+            replyMessage = "나? 다훈! 건강한 정신을 가진 정글러랍니다. ☺";
+        }
+        else if(msg.startsWith("/말랑하다")){
+            replyMessage = "잘생긴 얼굴을 활용하지 않는 이타적인 남자. 그렇지만 음침해요. 👻";
         }
         else if(msg.startsWith("/하트하다")){
             replyMessage = "세상에서 제일 잘생긴 강아지예요. 😍";
+        }
+        else if(msg.startsWith("/재화하다")){
+            replyMessage = "모든 사람에게 필요한 것 바로 재화예요. 🌼";
         }
         else if(msg.startsWith("/현이하다")){
             replyMessage = "성품이 어질고 재주가 뛰어난 엄마를 말해요. 🥰";
@@ -1010,6 +1159,24 @@ function response(room, msg, sender, isGroupChat, replier, ImageDB, packageName,
             replyMessage = "엄마는 17시 30분에 퇴근해요. 💖";
         }
         
+        else if(msg.startsWith("/태그 패치"))
+        {
+            Object.keys(tierList).forEach((key) => {
+
+                var jsonData = getRiotId(tierList[key]["id"])
+                tierList[key]["puuid"] = jsonData.puuid
+                
+                var jsonDataWithPuuid = getRiotAccount(jsonData.puuid)
+
+                tierList[key]["id"] = jsonDataWithPuuid.gameName
+                tierList[key]["tag"] = jsonDataWithPuuid.tagLine
+                
+                DataBase.removeDataBase("tierlist");
+                DataBase.setDataBase("tierlist",JSON.stringify(tierList));
+            });
+
+            replyMessage = "완료"
+        }
 
         
     
